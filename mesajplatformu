@@ -1,0 +1,220 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Web.Http;
+using beyzaintprogbut.Models;
+using beyzaintprogbut.ViewModel;
+
+namespace beyzaintprogbut.Controllers
+{
+    public class ServisController : ApiController
+    {
+        DB01Entities db = new DB01Entities();
+        SonucModel sonuc = new SonucModel();
+
+
+        #region Kullanıcı
+
+        [HttpGet]
+        [Route("api/kullaniciliste")]
+        public List<KullaniciModel> kullaniciListe()
+        {
+            List < KullaniciModel > liste = db.Kullanici.Select(x => new KullaniciModel()
+
+
+            {
+                kullaniciId = x.kullaniciId,
+                kullaniciAd = x.kullaniciAd,
+            }).ToList();
+
+            return liste;
+        }
+
+        [HttpGet]
+        [Route("api/kullanicibyid/{kullaniciId}")]
+        public KullaniciModel KullaniciById(int kullaniciId)
+        {
+            KullaniciModel kayit = db.Kullanici.Where(s => s.kullaniciId == kullaniciId).Select(x => new KullaniciModel()
+            {
+                kullaniciId = x.kullaniciId,
+                kullaniciAd = x.kullaniciAd,
+            }).SingleOrDefault();
+
+            return kayit;
+        }
+
+        [HttpPost]
+        [Route("api/kullaniciekle")]
+        public SonucModel KullaniciEkle(KullaniciModel model)
+        {
+            if (db.Kullanici.Count(s => s.kullaniciAd == model.kullaniciAd ) > 0)
+            {
+                sonuc.islem = false;
+                sonuc.mesaj = "Girilen Kullanıcı Adı Kayıtlıdır!";
+                return sonuc;
+            }
+
+            Kullanici yeni = new Kullanici();
+            yeni.kullaniciAd = model.kullaniciAd;
+     
+            db.Kullanici.Add(yeni);
+            db.SaveChanges();
+            sonuc.islem = true;
+            sonuc.mesaj = "Kullanici Eklendi";
+            return sonuc;
+        }
+
+        [HttpPut]
+        [Route("api/kullaniciduzenle")]
+        public SonucModel KullaniciDuzenle(KullaniciModel model)
+        {
+            Kullanici kayit = db.Kullanici.Where(s => s.kullaniciId == model.kullaniciId).SingleOrDefault();
+
+            if (kayit == null)
+            {
+                sonuc.islem = false;
+                sonuc.mesaj = "Kayıt Bulunamadı";
+                return sonuc;
+            }
+            kayit.kullaniciAd = model.kullaniciAd;
+     
+
+            db.SaveChanges();
+            sonuc.islem = true;
+            sonuc.mesaj = "Kullanıcı Düzenlendi";
+
+            return sonuc;
+        }
+
+        [HttpDelete]
+        [Route("api/kullanicisil/{kullaniciId}")]
+        public SonucModel KullaniciSil(int kullaniciId)
+        {
+            Kullanici kayit = db.Kullanici.Where(s => s.kullaniciId == kullaniciId).SingleOrDefault();
+
+            if (kayit == null)
+            {
+                sonuc.islem = false;
+                sonuc.mesaj = "Kayıt Bulunamadı";
+                return sonuc;
+            }
+
+            db.Kullanici.Remove(kayit);
+            db.SaveChanges();
+            sonuc.islem = true;
+            sonuc.mesaj = "Kullanıcı Silindi";
+            return sonuc;
+        }
+        #endregion
+
+        #region Mesaj
+
+
+        [HttpGet]
+        [Route("api/mesajliste")]
+        public List<MesajModel> MesajListe()
+        {
+            List<MesajModel> liste = db.Mesaj.Select(x => new MesajModel()
+            {
+                mesajId = x.mesajId,
+                mesajText = x.mesajText,
+                bulkMesaj = x.bulkMesaj,
+                grupId = x.grupId,
+                kullaniciAd = x.Kullanici.kullaniciAd,
+                kimdenId = x.kimdenId,
+                kimeId = x.kimeId,
+       
+            }).ToList();
+
+            return liste;
+        }
+        [HttpGet]
+        [Route("api/mesajlistesoneklenenler/{s}")]
+        public List<MesajModel> MesajListeSonEklenenler(int s)
+        {
+            List<MesajModel> liste = db.Mesaj.OrderByDescending(o => o.mesajId).Take(s).Select(x => new MesajModel()
+            {
+                mesajId = x.mesajId,
+                mesajText = x.mesajText,
+                bulkMesaj = x.bulkMesaj,
+                grupId = x.grupId,
+                kullaniciAd = x.Kullanici.kullaniciAd,
+                kimdenId = x.kimdenId,
+                kimeId = x.kimeId,
+
+            }).ToList();
+
+            return liste;
+        }
+
+        [HttpGet]
+        [Route("api/mesajbyid/{mesajId}")]
+        public MesajModel MesajById(int mesajId)
+        {
+            MesajModel kayit = db.Mesaj.Where(s => s.mesajId == mesajId).Select(x => new MesajModel()
+            {
+                mesajId = x.mesajId,
+                mesajText = x.mesajText,
+                bulkMesaj = x.bulkMesaj,
+                grupId = x.grupId,
+                kullaniciAd = x.Kullanici.kullaniciAd,
+                kimdenId = x.kimdenId,
+                kimeId = x.kimeId,
+            }).SingleOrDefault();
+            return kayit;
+        }
+
+        [HttpPost]
+        [Route("api/mesajekle")]
+        public SonucModel MesajEkle(MesajModel model)
+        {
+
+            Mesaj yeni = new Mesaj();
+            yeni.mesajId = model.mesajId;
+            yeni.mesajText = model.mesajText;
+            yeni.bulkMesaj = model.bulkMesaj;
+            yeni.grupId = model.grupId;
+            yeni.kimdenId = model.kimdenId;
+            yeni.kimeId = model.kimeId;
+          
+       
+            db.Mesaj.Add(yeni);
+            db.SaveChanges();
+
+            sonuc.islem = true;
+            sonuc.mesaj = "Makale Eklendi";
+            return sonuc;
+        }
+
+      
+        [HttpDelete]
+        [Route("api/mesajsil/{mesajId}")]
+        public SonucModel MesajSil(int mesajId)
+        {
+            Mesaj kayit = db.Mesaj.Where(s => s.mesajId == mesajId).SingleOrDefault();
+            if (kayit == null)
+            {
+                sonuc.islem = false;
+                sonuc.mesaj = "Kayıt Bulunamadı!";
+                return sonuc;
+            }
+
+
+            db.Mesaj.Remove(kayit);
+            db.SaveChanges();
+
+            sonuc.islem = true;
+            sonuc.mesaj = "Mesaj Silindi";
+            return sonuc;
+        }
+        #endregion
+
+
+    }
+
+}
+
+   
+  
