@@ -1,4 +1,4 @@
-using System;
+           using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -211,6 +211,136 @@ namespace beyzaintprogbut.Controllers
         }
         #endregion
 
+        #region Grup
+
+
+        [HttpGet]
+        [Route("api/grupliste")]
+        public List<GrupModel> GrupListe()
+        {
+            List<GrupModel> liste = db.Grup.Select(x => new GrupModel()
+            {
+                grupId = x.grupId,
+                grupAd = x.grupAd,
+
+            }).ToList();
+
+            return liste;
+        }
+        [HttpGet]
+        [Route("api/gruplistesoneklenenler/{s}")]
+        public List<GrupModel> GrupListeSonEklenenler(int s)
+        {
+            List<GrupModel> liste = db.Grup.OrderByDescending(o => o.grupId).Take(s).Select(x => new GrupModel()
+            {
+                grupId = x.grupId,
+                grupAd = x.grupAd,
+
+            }).ToList();
+
+            return liste;
+        }
+        [HttpGet]
+        [Route("api/Gruplistebykatid/{katId}")]
+        public List<GrupModel> GrupListeByMesajId(int mesajId)
+        {
+                 List < GrupModel > liste = db.Grup.Select(x => new GrupModel()
+                 {
+                grupId = x.grupId,
+                grupAd = x.grupAd,
+            }).ToList();
+
+            return liste;
+        }
+        [HttpGet]
+        [Route("api/gruplistebykullaniciid/{kullaniciId}")]
+        public List<GrupModel> KullaniciListeByKullaniciId(int kullaniciId)
+        {
+            List<GrupModel> liste = db.Grup.Select(x => new GrupModel()
+            {
+                grupId = x.grupId,
+                grupAd = x.grupAd,
+
+            }).ToList();
+
+            return liste;
+        }
+
+        [HttpGet]
+        [Route("api/grupbyid/{grupId}")]
+        public GrupModel GrupById(int grupId)
+        {
+            GrupModel kayit = db.Grup.Where(s => s.grupId == grupId).Select(x => new GrupModel()
+            {
+                grupId = x.grupId,
+                grupAd = x.grupAd,
+            }).SingleOrDefault();
+            return kayit;
+        }
+
+        [HttpPost]
+        [Route("api/grupekle")]
+        public SonucModel GrupEkle(GrupModel model)
+        {
+            if (db.Grup.Count(s => s.grupAd == model.grupAd) > 0)
+            {
+                sonuc.islem = false;
+                sonuc.mesaj = "Girilen Grup Başlığı Kayıtlıdır!";
+                return sonuc;
+            }
+
+            Grup yeni = new Grup();
+            yeni.grupId = model.grupId;
+            yeni.grupAd = model.grupAd;
+            db.Grup.Add(yeni);
+            db.SaveChanges();
+
+            sonuc.islem = true;
+            sonuc.mesaj = "Grup Eklendi";
+            return sonuc;
+        }
+
+        [HttpPut]
+        [Route("api/grupduzenle")]
+        public SonucModel GrupDuzenle(GrupModel model)
+        {
+            Grup kayit = db.Grup.Where(s => s.grupId == model.grupId).SingleOrDefault();
+            if (kayit == null)
+            {
+                sonuc.islem = false;
+                sonuc.mesaj = "Kayıt Bulunamadı!";
+                return sonuc;
+            }
+            kayit.grupId = model.grupId;
+            kayit.grupAd = model.grupAd;
+            db.SaveChanges();
+
+            sonuc.islem = true;
+            sonuc.mesaj = "Grup Düzenlendi";
+            return sonuc;
+
+        }
+
+        [HttpDelete]
+        [Route("api/grupsil/{grupId}")]
+        public SonucModel GrupSil(int grupId)
+        {
+            Grup kayit = db.Grup.Where(s => s.grupId == grupId).SingleOrDefault();
+            if (kayit == null)
+            {
+                sonuc.islem = false;
+                sonuc.mesaj = "Kayıt Bulunamadı!";
+                return sonuc;
+            }
+
+            db.Grup.Remove(kayit);
+            db.SaveChanges();
+
+            sonuc.islem = true;
+            sonuc.mesaj = "Grup Silindi";
+            return sonuc;
+        }
+        #endregion
 
     }
 
